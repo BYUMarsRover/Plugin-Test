@@ -22,7 +22,7 @@ import numpy as np
 class Task():
 
     # class constructor
-    def __init__(self, name, rate):
+    def __init__(self, name, rate) -> None:
     
         self._node_name = str(name) # The name visible in the ros node 
 
@@ -42,14 +42,14 @@ class Task():
         rospy.init_node(self._node_name, rate)
 
     # class destructor
-    def __del__(self):
+    def __del__(self) -> None:
 
         rospy.logwarn(self._node_name + " has completed its task and is shutting down!")
 
         rospy.signal_shutdown("The task is complete!")
 
 
-    def state_callback(self, msg):
+    def state_callback(self, msg) -> None:
 
         # Collect and format the new state
         new_state = np.array([[msg.x, msg.y, msg.theta, msg.linear_velocity, msg.angular_velocity]]).T
@@ -57,7 +57,7 @@ class Task():
         self._turtle_state = new_state # Make the old state the new state
 
 
-    def kill_callback(self, msg):
+    def kill_callback(self, msg) -> None:
 
         if msg.data == True: # if the node receives the kill signal
 
@@ -79,6 +79,7 @@ class Task():
 if __name__ == '__main__':
 
     curr_task = Task("Generic Task")
+    curr_task.run_task()
 
 
 
