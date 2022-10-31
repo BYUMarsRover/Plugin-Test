@@ -167,9 +167,6 @@ class Path_Follow(task):
                 self._task_status = True
                 self._curr_Twist = [0,0] # Stop all motion
 
-            
-            self._turtle_publisher.pub
-
     
     # Checks to see if the turtle bot is within the acceptable radial 
     # tolerance of a waypoint
@@ -198,7 +195,7 @@ class Path_Follow(task):
 
             return True
 
-        return 
+        return False
         
 
 
