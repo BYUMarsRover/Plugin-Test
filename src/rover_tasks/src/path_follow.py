@@ -27,6 +27,7 @@ class Path_Follow(task):
         DRIVING_FORWARD = 2
         ON_WAYPOINT = 3
         FINISH = 4
+        KILL = 5
 
     waypoint_radius_tolerance = 0.5 # the acceptable radius tolerance for landing on a waypoint
 
@@ -55,9 +56,10 @@ class Path_Follow(task):
     # This is a state machine that takes the turtle to each waypoint
     def run_task(self):
 
-        while(self._machine_state != self._STATE.FINISH):
+        while(self._machine_state != self._STATE.KILL):
 
-            if self._machine_state == self._STATE.INIT:
+            
+            if self._machine_state == self._STATE.INIT: ################################################# INIT STATE
 
                 if len(self.waypoints == 0):
 
@@ -66,29 +68,107 @@ class Path_Follow(task):
                 else:
 
                     self.curr_point = self.waypoints.pop(0)
-
-                    if  not self.check_waypoint_tolerance(self.curr_point): # If we're not on the waypoint, begin spinning
+                    
+                    # If we're not on the waypoint, check if we need to spin
+                    if  not self.check_waypoint_tolerance(self.curr_point):
                         
-                        self._curr_Twist = [0,self.rotational_cmd_vel]
+                        
+                        if not self.check_angle_tolerance(self.curr_point):
 
-                        self._machine_state = self._STATE.CORRECTING_ANGLE 
+                            self._curr_Twist = [0,self.rotational_cmd_vel]
+                            self._machine_state = self._STATE.CORRECTING_ANGLE 
 
-                    else:
+                            
+                        else: 
 
-                        pass
+                            self._self._curr_Twist = [self.foward_cmd_speed,0]
+                            self._machine_state = self._STATE.DRIVING_FORWARD
 
 
-            elif self._machine_state == self._STATE.CORRECTING_ANGLE:
+                    else: # If we're on the waypoint, then just change state
+                        
+                        self._curr_Twist = [0,0]
+                        self._machine_state = self._STATE.ON_WAYPOINT
 
-                pass
+
+            elif self._machine_state == self._STATE.CORRECTING_ANGLE: ################################# SPIN STATE
+
+                # If we're not on the waypoint, check if we need to spin
+                    if  not self.check_waypoint_tolerance(self.curr_point):
+                        
+                        
+                        if not self.check_angle_tolerance(self.curr_point): # Yes we need to spin to get to the waypoint
+
+                            self._curr_Twist = [0,self.rotational_cmd_vel]
+                            self._machine_state = self._STATE.CORRECTING_ANGLE 
+
+                             
+                        else: # No, we don't need to spin to get to the waypoint
+
+                            self._self._curr_Twist = [self.foward_cmd_speed,0]
+                            self._machine_state = self._STATE.DRIVING_FORWARD
+
+
+                    else: # If we're on the waypoint, then just change state
+                        
+                        self._curr_Twist = [0,0]
+                        self._machine_state = self._STATE.ON_WAYPOINT
             
-            elif self._machine_state == self._STATE.DRIVING_FORWARD:
+            elif self._machine_state == self._STATE.DRIVING_FORWARD: ################################## Driving Forward
 
-                pass
+                # If we're not on the waypoint, check if we need to spin
+                    if  not self.check_waypoint_tolerance(self.curr_point):
+                        
+                        
+                        if not self.check_angle_tolerance(self.curr_point):
+
+                            self._curr_Twist = [0,self.rotational_cmd_vel]
+                            self._machine_state = self._STATE.CORRECTING_ANGLE 
+
+                            
+                        else: 
+
+                            self._self._curr_Twist = [self.foward_cmd_speed,0]
+                            self._machine_state = self._STATE.DRIVING_FORWARD
+
+
+                    else: # If we're on the waypoint, then just change state
+                        
+                        self._curr_Twist = [0,0]
+                        self._machine_state = self._STATE.ON_WAYPOINT
             
-            elif self._machine_state == self._STATE.FINISH:
+            elif self._machine_state == self._STATE.ON_WAYPOINT: ########################################### ON WAYPOINT STATE
 
-                pass
+                if len(self.waypoints == 0):
+
+                    self._machine_state = self._STATE.FINISH # If there's no waypoints, we're gtg
+                
+                else:
+
+                    self.curr_point = self.waypoints.pop(0)
+                    
+                    # If we're not on the waypoint, check if we need to spin
+                    if  not self.check_waypoint_tolerance(self.curr_point):
+                        
+                        
+                        if not self.check_angle_tolerance(self.curr_point):
+
+                            self._curr_Twist = [0,self.rotational_cmd_vel]
+                            self._machine_state = self._STATE.CORRECTING_ANGLE 
+
+                            
+                        else: 
+
+                            self._self._curr_Twist = [self.foward_cmd_speed,0]
+                            self._machine_state = self._STATE.DRIVING_FORWARD
+
+            elif self._machine_state == self._STATE.FINISH: ########################################### ON FINISHED STATE
+                
+                self._task_status = True
+                self._curr_Twist = [0,0] # Stop all motion
+
+            
+            self._turtle_publisher.pub
 
     
     # Checks to see if the turtle bot is within the acceptable radial 
