@@ -1,0 +1,2 @@
+plugin_gui:rover_tasks
+-DCATKIN_DEVEL_PREFIX=/home/marsrover/Plugin-Test/devel -DCMAKE_INSTALL_PREFIX=/home/marsrover/Plugin-Test/install -G Unix Makefiles

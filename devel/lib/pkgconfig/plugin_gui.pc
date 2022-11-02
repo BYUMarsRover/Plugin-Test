@@ -1,0 +1,8 @@
+prefix=/home/marsrover/Plugin-Test/devel
+
+Name: plugin_gui
+Description: Description of plugin_gui
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 
