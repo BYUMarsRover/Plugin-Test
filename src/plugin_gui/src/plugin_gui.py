@@ -1,17 +1,21 @@
+#!/usr/bin/python
+
+# Ryan Black
+# Mars Rover 2022
+# Plugin prototype GUI
+
 import sys
 print(sys.version)
 import warnings
 warnings.filterwarnings('ignore')
- 
- 
+
+
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtWidgets import QMainWindow, QLabel, QSlider
 from PyQt5.QtCore import QSize, Qt, pyqtSlot,pyqtSignal 
- 
- 
- 
+
+
 class HelloWindow(QMainWindow):
-    
     pushButtonClicked = pyqtSignal()
     valueUpdating = pyqtSignal(int)
     
