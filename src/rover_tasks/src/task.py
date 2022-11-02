@@ -11,6 +11,7 @@
 #
 # PUBLICATIONS:  - turtle1/cmd_vel (Command velocities to the turtle bot)
 #                - task/status     (A Bool indicating whether the task has been completed)
+from os import stat
 import rospy
 from std_msgs.msg import Bool
 from geometry_msgs.msg import Twist
@@ -27,11 +28,11 @@ class Task():
         self._node_name = str(name) # The name visible in the ros node 
 
         # Publishers
-        self._turtle_listener = rospy.Subscriber("turtle1/pose", Twist, self.state_callback, queue_size = 1)
+        self._turtle_listener = rospy.Subscriber("turtle1/pose", Pose, self.state_callback, queue_size = 1)
         self._manager_listener = rospy.Subscriber("manager/kill", Bool, self.kill_callback, queue_size = 1)
 
         # Subscribers
-        self._turtle_publisher = rospy.Publisher("turtle1/cmd_vel", Pose, queue_size = 1)
+        self._turtle_publisher = rospy.Publisher("turtle1/cmd_vel", Twist, queue_size = 1)
         self._task_status_publisher = rospy.Publisher("task/status", Bool, queue_size =- 1)
 
         # Internal Variables
@@ -62,6 +63,25 @@ class Task():
         if msg.data == True: # if the node receives the kill signal
 
             self.__del__()
+            
+    # puslishes a cmd vel in the form [fwd, angular]
+    def publish_cmd_vel(self,twist):
+
+        cmd_msg = Twist
+
+        cmd_msg.linear = twist[0]
+        cmd_msg.angular = twist[1]
+
+        self._turtle_publisher.publish(cmd_msg)
+
+    # publishes task state
+    def publish_task_state(self, state):
+
+        status_message = Bool
+
+        status_message.data = state
+
+        self._task_status_publisher.publish(state)
 
 
     # Runs the task state machine. For this parent class
