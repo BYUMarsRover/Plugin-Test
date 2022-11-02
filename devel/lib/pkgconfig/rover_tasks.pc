@@ -1,8 +1,0 @@
-prefix=/home/marsrover/Plugin-Test/devel
-
-Name: rover_tasks
-Description: Description of rover_tasks
-Version: 0.0.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 
