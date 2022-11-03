@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Adam Welker       MARS ROVER 22   OCTOBER 2022
 #
 # path_follow.py -- a Task state machine & ROS node that 
@@ -10,15 +12,15 @@
 #
 #
 # PUBLICATIONS:  - *turtle1/cmd_vel (Command velocities to the turtle bot)
-#                - *task/status     (A Bool indicating whether the task has been completed)
-from typing import List
-import task
-from math import asin
+
+import rospy
+from task import Task
+from math import atan2, pi
 
 from enum import Enum
 
 
-class Path_Follow(task):
+class Path_Follow(Task):
 
     class _STATE(Enum):
 
@@ -29,28 +31,28 @@ class Path_Follow(task):
         FINISH = 4
         KILL = 5
 
-    waypoint_radius_tolerance = 0.5 # the acceptable radius tolerance for landing on a waypoint
+    waypoint_radius_tolerance = 0.05 # the acceptable radius tolerance for landing on a waypoint
 
-    angle_tolerance = 1.0 # +/- angle tolerance when persuring a waypoint
+    angle_tolerance = 0.15 # +/- angle tolerance when persuring a waypoint
 
-    foward_cmd_speed = 5.0 # command speed for forward commands in pix/s
+    foward_cmd_speed = 0.5 # command speed for forward commands in pix/s
 
-    rotational_cmd_vel = 1.0 # command rotational velocity in rad/s
+    rotational_cmd_vel = 1.25 # command rotational velocity in rad/s
 
     _curr_Twist = [0,0] # currend command velocities in format [fwd, angular]
 
     # Class constructor
     def __init__(self, name ,rate, waypoint_list) -> None:
         
-        super().__init__(name, rate) # Call the parent constructor
-
-        assert type(waypoint_list) == List
-
+        
         self.waypoints = waypoint_list #Copy the list of waypoints into the self object
 
         self.curr_point = None # set the current waypoint as a none
 
-        self._machine_state = 0 # initialize the state machine position
+        self._machine_state = self._STATE.INIT # initialize the state machine position
+
+        super().__init__(name, rate) # Call the parent constructor
+
 
     # Overide of the run_task method. 
     # This is a state machine that takes the turtle to each waypoint
@@ -58,16 +60,17 @@ class Path_Follow(task):
 
         while(self._machine_state != self._STATE.KILL):
 
-            
+           
             if self._machine_state == self._STATE.INIT: ################################################# INIT STATE
+                
 
-                if len(self.waypoints == 0):
+                if len(self.waypoints) == 0:
 
                     self._machine_state = self._STATE.FINISH # If there's no waypoints, we're gtg
                 
                 else:
-
-                    self.curr_point = self.waypoints.pop(0)
+                    self.waypoints.pop(0)
+                    self.curr_point = self.waypoints[0]
                     
                     # If we're not on the waypoint, check if we need to spin
                     if  not self.check_waypoint_tolerance(self.curr_point):
@@ -75,13 +78,13 @@ class Path_Follow(task):
                         
                         if not self.check_angle_tolerance(self.curr_point):
 
-                            self._curr_Twist = [0,self.rotational_cmd_vel]
+                            self._curr_Twist = [0,self.get_rotational_vel(self.curr_point,self.rotational_cmd_vel)]
                             self._machine_state = self._STATE.CORRECTING_ANGLE 
 
                             
                         else: 
 
-                            self._self._curr_Twist = [self.foward_cmd_speed,0]
+                            self._curr_Twist = [self.foward_cmd_speed,0]
                             self._machine_state = self._STATE.DRIVING_FORWARD
 
 
@@ -99,13 +102,13 @@ class Path_Follow(task):
                         
                         if not self.check_angle_tolerance(self.curr_point): # Yes we need to spin to get to the waypoint
 
-                            self._curr_Twist = [0,self.rotational_cmd_vel]
+                            self._curr_Twist = [0,self.get_rotational_vel(self.curr_point,self.rotational_cmd_vel)]
                             self._machine_state = self._STATE.CORRECTING_ANGLE 
 
                              
                         else: # No, we don't need to spin to get to the waypoint
 
-                            self._self._curr_Twist = [self.foward_cmd_speed,0]
+                            self._curr_Twist = [self.foward_cmd_speed,0]
                             self._machine_state = self._STATE.DRIVING_FORWARD
 
 
@@ -122,13 +125,13 @@ class Path_Follow(task):
                         
                         if not self.check_angle_tolerance(self.curr_point):
 
-                            self._curr_Twist = [0,self.rotational_cmd_vel]
+                            self._curr_Twist = [0,self.get_rotational_vel(self.curr_point,self.rotational_cmd_vel)]
                             self._machine_state = self._STATE.CORRECTING_ANGLE 
 
                             
                         else: 
 
-                            self._self._curr_Twist = [self.foward_cmd_speed,0]
+                            self._curr_Twist = [self.foward_cmd_speed,0]
                             self._machine_state = self._STATE.DRIVING_FORWARD
 
 
@@ -139,13 +142,14 @@ class Path_Follow(task):
             
             elif self._machine_state == self._STATE.ON_WAYPOINT: ########################################### ON WAYPOINT STATE
 
-                if len(self.waypoints == 0):
+                if len(self.waypoints) == 0:
 
                     self._machine_state = self._STATE.FINISH # If there's no waypoints, we're gtg
                 
                 else:
 
-                    self.curr_point = self.waypoints.pop(0)
+                    self.waypoints.pop(0)
+                    self.curr_point = self.waypoints[0]
                     
                     # If we're not on the waypoint, check if we need to spin
                     if  not self.check_waypoint_tolerance(self.curr_point):
@@ -153,13 +157,13 @@ class Path_Follow(task):
                         
                         if not self.check_angle_tolerance(self.curr_point):
 
-                            self._curr_Twist = [0,self.rotational_cmd_vel]
+                            self._curr_Twist = self._curr_Twist = [0,self.get_rotational_vel(self.curr_point,self.rotational_cmd_vel)]
                             self._machine_state = self._STATE.CORRECTING_ANGLE 
 
                             
                         else: 
 
-                            self._self._curr_Twist = [self.foward_cmd_speed,0]
+                            self._curr_Twist = [self.foward_cmd_speed,0]
                             self._machine_state = self._STATE.DRIVING_FORWARD
 
             elif self._machine_state == self._STATE.FINISH: ########################################### ON FINISHED STATE
@@ -167,13 +171,26 @@ class Path_Follow(task):
                 self._task_status = True
                 self._curr_Twist = [0,0] # Stop all motion
 
+
+            self.publish_cmd_vel(self._curr_Twist)
+            self.publish_task_state(self._task_status)
+            rospy.loginfo("Current Path Plan" + str(self.curr_point))
+            rospy.loginfo("Current Pose: " + str(self._turtle_state))
+            self._rate.sleep()
+
+            if rospy.is_shutdown():
+
+                break
+
     
     # Checks to see if the turtle bot is within the acceptable radial 
     # tolerance of a waypoint
-    def check_waypoint_tolerance(self, waypoint):
+    def check_waypoint_tolerance(self, waypoint) -> bool:
 
         diff_x = waypoint[0] - self._turtle_state[0]
         diff_y = waypoint[1] - self._turtle_state[1]
+        
+        rospy.loginfo('Current Proximity Error: ' + str((diff_x**2 + diff_y**2)**0.5))
 
         # Use pythagorean theorom to find if we're within tolerance
         if (diff_x**2 + diff_y**2)**0.5 <= self.waypoint_radius_tolerance:
@@ -184,19 +201,48 @@ class Path_Follow(task):
 
     # Checks to see if the turtle bot is within acceptable
     # angular tolerance ofthe current best path to the next waypoint
-    def check_angle_tolerance(self, waypoint):
+    def check_angle_tolerance(self, waypoint) -> bool:
 
         diff_x = waypoint[0] - self._turtle_state[0]
         diff_y = waypoint[1] - self._turtle_state[1]
 
-        des_angle = asin(diff_y/diff_x)
+        des_angle = atan2(diff_y,diff_x)
+
+        rospy.loginfo('Desired Angle Error: ' + str(des_angle - self._turtle_state[2]))
 
         if abs(des_angle - self._turtle_state[2]) <= self.angle_tolerance:
 
             return True
 
         return False
+
+    # Checks to see if the turtle bot is within acceptable
+    # angular tolerance ofthe current best path to the next waypoint
+    def get_rotational_vel(self, waypoint, curr_vel) -> float:
+
+        diff_x = waypoint[0] - self._turtle_state[0]
+        diff_y = waypoint[1] - self._turtle_state[1]
+
+        des_angle = atan2(diff_y,diff_x)
+
+        multiplier1 = (des_angle - self._turtle_state[2]) / abs(des_angle - self._turtle_state[2])
+
+        multiplier2 = 1
+
+        if abs(des_angle - self._turtle_state[2]) >= pi:
+
+            multiplier2 = -1
+
+        return curr_vel*multiplier1*multiplier2
         
 
 
-        
+## =====  Main Method =======
+
+if __name__ == '__main__':
+
+    waypoints = [(0,0), (2,0), (2,2), (0,2), (0,0)]
+
+    curr_task = Path_Follow('Path_Planner', 20, waypoints)
+
+    curr_task.run_task()

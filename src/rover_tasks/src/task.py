@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+
+
 # Adam Welker       MARS ROVER 2022         October 2022
 #
 # task.py -- an interface class for state machine tasks
@@ -17,6 +20,7 @@ from std_msgs.msg import Bool
 from geometry_msgs.msg import Twist
 from turtlesim.msg import Pose
 import numpy as np
+from math import pi
 
 # A parent class to each of the state machine tasks. Has atributes common publisher and subscribers for interfacing
 # with the task manager + turtle bot. Also contains a run_task() method that must be overwritten. 
@@ -33,14 +37,15 @@ class Task():
 
         # Subscribers
         self._turtle_publisher = rospy.Publisher("turtle1/cmd_vel", Twist, queue_size = 1)
-        self._task_status_publisher = rospy.Publisher("task/status", Bool, queue_size =- 1)
+        self._task_status_publisher = rospy.Publisher("task/status", Bool, queue_size = 1)
 
         # Internal Variables
         self._turtle_state = np.array([[0,0,0,0,0]]).T # state in matrix format of [x,y,theta,v,w].T
 
         self._task_status = False # False if running, true if complete
 
-        rospy.init_node(self._node_name, rate)
+        rospy.init_node(self._node_name)
+        self._rate = rospy.Rate(rate)
 
     # class destructor
     def __del__(self) -> None:
@@ -53,7 +58,13 @@ class Task():
     def state_callback(self, msg) -> None:
 
         # Collect and format the new state
-        new_state = np.array([[msg.x, msg.y, msg.theta, msg.linear_velocity, msg.angular_velocity]]).T
+        angle = msg.theta
+
+        # if angle < 0:
+
+        #     angle = angle + 2*pi
+
+        new_state = np.array([[msg.x - 5, msg.y - 5, angle, msg.linear_velocity, msg.angular_velocity]]).T
 
         self._turtle_state = new_state # Make the old state the new state
 
@@ -67,21 +78,21 @@ class Task():
     # puslishes a cmd vel in the form [fwd, angular]
     def publish_cmd_vel(self,twist):
 
-        cmd_msg = Twist
+        cmd_msg = Twist()
 
-        cmd_msg.linear = twist[0]
-        cmd_msg.angular = twist[1]
+        cmd_msg.linear.x = twist[0]
+        cmd_msg.angular.z = twist[1]
 
         self._turtle_publisher.publish(cmd_msg)
 
     # publishes task state
     def publish_task_state(self, state):
 
-        status_message = Bool
+        status_message = Bool()
 
         status_message.data = state
 
-        self._task_status_publisher.publish(state)
+        self._task_status_publisher.publish(status_message)
 
 
     # Runs the task state machine. For this parent class
