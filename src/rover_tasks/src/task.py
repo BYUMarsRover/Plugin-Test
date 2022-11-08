@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3.8c
 
 
 # Adam Welker       MARS ROVER 2022         October 2022
@@ -14,7 +14,7 @@
 #
 # PUBLICATIONS:  - turtle1/cmd_vel (Command velocities to the turtle bot)
 #                - task/status     (A Bool indicating whether the task has been completed)
-from os import stat
+
 import rospy
 from std_msgs.msg import Bool
 from geometry_msgs.msg import Twist

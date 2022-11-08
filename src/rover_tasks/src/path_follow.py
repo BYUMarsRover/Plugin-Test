@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-
+#!/usr/bin/python3.8
 # Adam Welker       MARS ROVER 22   OCTOBER 2022
 #
 # path_follow.py -- a Task state machine & ROS node that 
