@@ -70,6 +70,8 @@ class Path_Follow(Task):
                 else:
                     self.waypoints.pop(0)
                     self.curr_point = self.waypoints[0]
+                    rospy.loginfo('Rover has reached waypoint')
+                    rospy.loginfo("Current Path Plan" + str(self.curr_point))
                     
                     # If we're not on the waypoint, check if we need to spin
                     if  not self.check_waypoint_tolerance(self.curr_point):
@@ -149,6 +151,8 @@ class Path_Follow(Task):
 
                     self.waypoints.pop(0)
                     self.curr_point = self.waypoints[0]
+                    rospy.loginfo('Rover has reached waypoint')
+                    rospy.loginfo("Current Path Plan" + str(self.curr_point))
                     
                     # If we're not on the waypoint, check if we need to spin
                     if  not self.check_waypoint_tolerance(self.curr_point):
@@ -173,8 +177,6 @@ class Path_Follow(Task):
 
             self.publish_cmd_vel(self._curr_Twist)
             self.publish_task_state(self._task_status)
-            rospy.loginfo("Current Path Plan" + str(self.curr_point))
-            rospy.loginfo("Current Pose: " + str(self._turtle_state))
             self._rate.sleep()
 
             if rospy.is_shutdown():
@@ -188,8 +190,6 @@ class Path_Follow(Task):
 
         diff_x = waypoint[0] - self._turtle_state[0]
         diff_y = waypoint[1] - self._turtle_state[1]
-        
-        rospy.loginfo('Current Proximity Error: ' + str((diff_x**2 + diff_y**2)**0.5))
 
         # Use pythagorean theorom to find if we're within tolerance
         if (diff_x**2 + diff_y**2)**0.5 <= self.waypoint_radius_tolerance:
@@ -206,8 +206,6 @@ class Path_Follow(Task):
         diff_y = waypoint[1] - self._turtle_state[1]
 
         des_angle = atan2(diff_y,diff_x)
-
-        rospy.loginfo('Desired Angle Error: ' + str(des_angle - self._turtle_state[2]))
 
         if abs(des_angle - self._turtle_state[2]) <= self.angle_tolerance:
 
