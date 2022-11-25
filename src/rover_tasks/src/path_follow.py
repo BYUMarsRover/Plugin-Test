@@ -238,8 +238,14 @@ class Path_Follow(Task):
 
 if __name__ == '__main__':
 
-    waypoints = [(0,0), (2,0), (2,2), (0,2), (0,0)]
+    waypoints = [(0,0), (2,0), (2,2), (0,2), (0,0), [2,3.5]]
 
     curr_task = Path_Follow('Path_Planner', 20, waypoints)
 
     curr_task.run_task()
+
+    waypoints = [(0,0), (2,0), (2,2), (0,2), (0,0), [2,3.5]]
+
+    curr1_task = Path_Follow('Path_Planner', 20, waypoints)
+
+    curr1_task.run_task()

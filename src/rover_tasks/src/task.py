@@ -44,7 +44,7 @@ class Task():
 
         self._task_status = False # False if running, true if complete
 
-        rospy.init_node(self._node_name)
+        rospy.init_node(self._node_name,anonymous=True)
         self._rate = rospy.Rate(rate)
 
     # class destructor
