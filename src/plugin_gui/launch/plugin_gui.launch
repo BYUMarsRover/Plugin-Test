@@ -1,0 +1,3 @@
+<launch>
+    <node pkg="plugin_gui" type="plugin_gui.py" name="plugin_gui" output="screen"/>
+</launch>
