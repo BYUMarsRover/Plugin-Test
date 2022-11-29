@@ -101,9 +101,16 @@ class Path_Follow(Task):
                         
                         
                         if not self.check_angle_tolerance(self.curr_point): # Yes we need to spin to get to the waypoint
+  if  not self.check_waypoint_tolerance(self.curr_point):
+                        
+                        
+                        if not self.check_angle_tolerance(self.curr_point):
 
                             self._curr_Twist = [0,self.get_rotational_vel(self.curr_point,self.rotational_cmd_vel)]
                             self._machine_state = self._STATE.CORRECTING_ANGLE 
+
+                            
+                        else: 
 
                              
                         else: # No, we don't need to spin to get to the waypoint
