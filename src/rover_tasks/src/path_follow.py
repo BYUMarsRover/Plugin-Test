@@ -52,6 +52,10 @@ class Path_Follow(Task):
 
         super().__init__(name, rate) # Call the parent constructor
 
+        self._manager_listener.name = 'path_follow/kill'
+
+        self._task_status_publisher.name = "path_follow/status"
+
 
     # Overide of the run_task method. 
     # This is a state machine that takes the turtle to each waypoint

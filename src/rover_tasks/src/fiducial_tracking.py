@@ -39,6 +39,10 @@ class Fiducial_Tracking_Node(Task):
 
         super().__init__(name, rate)
 
+        self._manager_listener.name = "fiducial_tracking/kill"
+
+        self._task_status_publisher.name = "fiducial_tracking/status"
+
         self.see_tag = False
 
         self.state_machine_state = self._STATE.INIT
