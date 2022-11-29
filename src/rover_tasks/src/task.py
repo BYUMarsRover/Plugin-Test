@@ -43,6 +43,7 @@ class Task():
         self._turtle_state = np.array([[0,0,0,0,0]]).T # state in matrix format of [x,y,theta,v,w].T
 
         self._task_status = False # False if running, true if complete
+        self.kill_state = False # True if the node is sleeping
 
         rospy.init_node(self._node_name,anonymous=True)
         self._rate = rospy.Rate(rate)
@@ -71,9 +72,7 @@ class Task():
 
     def kill_callback(self, msg) -> None:
 
-        if msg.data == True: # if the node receives the kill signal
-
-            self.__del__()
+       self.kill_state = msg.data
             
     # puslishes a cmd vel in the form [fwd, angular]
     def publish_cmd_vel(self,twist):

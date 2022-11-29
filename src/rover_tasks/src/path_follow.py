@@ -56,12 +56,22 @@ class Path_Follow(Task):
 
         self._task_status_publisher.name = "path_follow/status"
 
+    
+    def kill_callback(self, msg) -> None:
+
+        
+        super().kill_callback(msg)
+
+        if self.kill_state == True:
+
+            self._machine_state = self._STATE.KILL
+
 
     # Overide of the run_task method. 
     # This is a state machine that takes the turtle to each waypoint
     def run_task(self):
 
-        while(self._machine_state != self._STATE.KILL):
+        while(not rospy.is_shutdown()):
 
            
             if self._machine_state == self._STATE.INIT: ################################################# INIT STATE
@@ -176,16 +186,24 @@ class Path_Follow(Task):
             elif self._machine_state == self._STATE.FINISH: ########################################### ON FINISHED STATE
                 
                 self._task_status = True
-                self._curr_Twist = [0,0] # Stop all motion
+                break
+
+            if self._machine_state == self._STATE.KILL:
+                
+                break
 
 
             self.publish_cmd_vel(self._curr_Twist)
             self.publish_task_state(self._task_status)
             self._rate.sleep()
 
-            if rospy.is_shutdown():
 
-                break
+        self._curr_Twist = [0,0] # Stop all motion
+        self.publish_cmd_vel(self._curr_Twist)
+        self.publish_task_state(self._task_status)
+        self._machine_state = self._STATE.INIT
+
+    
 
     
     # Checks to see if the turtle bot is within the acceptable radial 
@@ -244,12 +262,9 @@ if __name__ == '__main__':
 
     waypoints = [(0,0), (2,0), (2,2), (0,2), (0,0), [2,3.5]]
 
-    curr_task = Path_Follow('Path_Planner', 20, waypoints)
+    curr_task = Path_Follow('Path_Planner', 20, waypoints) 
 
-    curr_task.run_task()
+    while(not rospy.is_shutdown()):
 
-    waypoints = [(0,0), (2,0), (2,2), (0,2), (0,0), [2,3.5]]
-
-    curr1_task = Path_Follow('Path_Planner', 20, waypoints)
-
-    curr1_task.run_task()
+        if curr_task.kill_state == False:
+            curr_task.run_task()
