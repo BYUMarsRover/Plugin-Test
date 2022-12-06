@@ -1,0 +1,20 @@
+# This action command contains the data needed for fiducial recognition
+
+# Define Goal
+
+uint32 task_id
+
+float32 gate_distance
+
+---
+# Define Results
+
+string web_address
+
+
+---
+
+#define feedback
+
+float32 percent_complete
+float32 current_heading

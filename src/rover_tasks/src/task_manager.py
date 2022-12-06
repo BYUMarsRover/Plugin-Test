@@ -11,6 +11,7 @@
 
 import rospy
 from std_msgs.msg import Bool
+import actionlib
 
 
 from path_follow import Path_Follow
@@ -74,8 +75,7 @@ if __name__ == '__main__':
 
     task_manager = Task_Manager
 
-    task_manager.add_task(waypoints,fiducial_tracker)
-
+    rospy.spin()
 
 
 

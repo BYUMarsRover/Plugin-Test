@@ -14,7 +14,14 @@
 # PUBLICATIONS:  - *turtle1/cmd_vel (Command velocities to the turtle bot)
 
 
+import roslib
+roslib.load_manifest('rover_tasks')
 import rospy
+import actionlib
+
+from rover_tasks.msg import GateTraversalAction, GateTraversalActionResult
+
+
 from task import Task
 from enum import Enum
 from std_msgs.msg import Bool
@@ -51,7 +58,22 @@ class Fiducial_Tracking_Node(Task):
 
         self.tag_subscriber = rospy.Subscriber('fiducials/tag_present', Bool, self.update_tag_status, queue_size=1)
 
-    
+        self.action_server = actionlib.SimpleActionServer('Gate_Traversal', GateTraversalAction, self.execute, auto_start=False)
+        self.action_server.start()
+        rospy.logwarn("Started gate traversal action server!")
+
+    # method that executes the state machine action
+
+    def execute(self, goal):
+        
+
+        rospy.logwarn("Performing Gate Traversal")
+        self.run_task()
+        rospy.logwarn("Gate Traversed")
+        self.action_server.set_succeeded()
+
+
+
     # updates whether we're seeing a tag or not
     def update_tag_status(self, msg) -> None:
 
@@ -124,5 +146,3 @@ class Fiducial_Tracking_Node(Task):
 if __name__ == '__main__':
 
     fiducial_tracker = Fiducial_Tracking_Node('fiducial_tracker',20)
-
-    fiducial_tracker.run_task()

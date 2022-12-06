@@ -52,7 +52,7 @@ class Fiducial_Tracker():
     def detect_tag(self) -> bool:
 
         self.capture_image()
-        cv.imshow("Raw Image", self.raw)
+        #cv.imshow("Raw Image", self.raw)
         self.isTagPresent()
 
         return self.tag_present

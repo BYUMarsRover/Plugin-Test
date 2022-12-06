@@ -1,0 +1,20 @@
+# This action will contain the information needed to traverse a series of waypoints
+
+# Define Goal
+
+uint32 task_id
+
+geometry_msgs/Pose[] waypoints
+
+---
+
+#Define result
+
+geometry_msgs/Pose final_location
+
+---
+
+# Define feedback
+
+float32 percent_complete
+geometry_msgs/Pose current_waypoint

@@ -12,7 +12,13 @@
 #
 # PUBLICATIONS:  - *turtle1/cmd_vel (Command velocities to the turtle bot)
 
+import roslib
+roslib.load_manifest('rover_tasks')
 import rospy
+import actionlib
+
+from rover_tasks.msg import WayPointsAction
+
 from task import Task
 from math import atan2, pi
 
@@ -41,8 +47,11 @@ class Path_Follow(Task):
     _curr_Twist = [0,0] # currend command velocities in format [fwd, angular]
 
     # Class constructor
-    def __init__(self, name ,rate, waypoint_list) -> None:
+    def __init__(self, name ,rate, waypoint_list = []) -> None:
         
+        super().__init__(name, rate) # Call the parent constructor
+
+        ## Make the internal variables 
         
         self.waypoints = waypoint_list #Copy the list of waypoints into the self object
 
@@ -50,21 +59,23 @@ class Path_Follow(Task):
 
         self._machine_state = self._STATE.INIT # initialize the state machine position
 
-        super().__init__(name, rate) # Call the parent constructor
+        ## Define Action Server
 
-        self._manager_listener.name = 'path_follow/kill'
+        self.action_server = actionlib.SimpleActionServer('Path_Follow', WayPointsAction, self.execute , auto_start=False)
+        self.action_server.start()
 
-        self._task_status_publisher.name = "path_follow/status"
+        rospy.logwarn("Started Path Follow Action Server!")
+        
+
 
     
-    def kill_callback(self, msg) -> None:
+    def execute(self,goal):
 
-        
-        super().kill_callback(msg)
+        self.add_waypoints(goal)
 
-        if self.kill_state == True:
+        self.run_task()
 
-            self._machine_state = self._STATE.KILL
+        self.action_server.set_succeeded()
 
 
     # Overide of the run_task method. 
@@ -164,7 +175,9 @@ class Path_Follow(Task):
                 else:
 
                     self.waypoints.pop(0)
-                    self.curr_point = self.waypoints[0]
+                    if len(self.waypoints) > 0:
+                        self.curr_point = self.waypoints[0]
+
                     rospy.loginfo('Rover has reached waypoint')
                     rospy.loginfo("Current Path Plan" + str(self.curr_point))
                     
@@ -253,18 +266,28 @@ class Path_Follow(Task):
             multiplier2 = -1
 
         return curr_vel*multiplier1*multiplier2
-        
+
+    #Transfers goal attributes to internally stored waypoints
+
+    def add_waypoints(self,goal):
+
+        poses = goal.waypoints
+
+        for point in poses:
+
+            x = point.position.x
+            y = point.position.y
+
+            coordinate = (x,y)
+
+            self.waypoints.append(coordinate)       
 
 
 ## =====  Main Method =======
 
 if __name__ == '__main__':
 
-    waypoints = [(0,0), (2,0), (2,2), (0,2), (0,0), [2,3.5]]
+    path_Follower = Path_Follow('Path_Planner', 20)
+    server = path_Follower.action_server
 
-    curr_task = Path_Follow('Path_Planner', 20, waypoints) 
-
-    while(not rospy.is_shutdown()):
-
-        if curr_task.kill_state == False:
-            curr_task.run_task()
+    rospy.spin()

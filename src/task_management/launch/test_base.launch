@@ -1,0 +1,29 @@
+<launch>
+
+    <group>
+
+        <node pkg="fiducial_recognition" type="fiducial_node.py" name="Webcam_Ficudial_Tracking"/>
+
+    </group>
+
+    <group>
+        
+        <node pkg="turtlesim" name="Rover" type="turtlesim_node"/>
+
+    </group>
+
+    <group>
+        
+        <node pkg="rover_tasks" name="Path_Follow_State_Machine" type="path_follow.py"/>
+        <node pkg="rover_tasks" name="Gate_Traversal_State_Machine" type="fiducial_tracking.py"/>
+        
+    </group>
+
+
+    <!-- <group ns="Task_Management">
+        
+        <node pkg="task_management" name="Task_Manager" type="state_machine_task_manager.py"/>
+
+    </group> -->
+
+</launch>
